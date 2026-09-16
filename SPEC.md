@@ -35,7 +35,20 @@ The skill ports these conventions from the author's private research workflow:
 
 ## Invocation
 
-`/read-paper <pdf-url-or-local-path>`
+```
+/read-paper [article-url | article-filepath]
+```
+
+Examples:
+
+```
+/read-paper https://arxiv.org/pdf/2509.24527
+/read-paper https://arxiv.org/abs/2509.24527
+/read-paper ~/Downloads/NitroGen.pdf
+```
+
+Exactly one positional argument. With no argument the skill asks for the URL or path
+(`AskUserQuestion` with free text) instead of failing.
 
 Input handling:
 
@@ -167,7 +180,7 @@ upload), and the first-line and section conventions carry over unchanged.
 On a fresh machine and account:
 
 1. `claude plugin marketplace add <owner>/read-paper` + install succeeds.
-2. `/read-paper https://arxiv.org/abs/<id>` first asks for the save directory (and domain on
+2. `/read-paper https://arxiv.org/pdf/<id>` first asks for the save directory (and domain on
    first run).
 3. The chosen directory receives `pdfs/`, `<slug>/<slug>.md`, `<slug>/figures/*.png`,
    and created/updated `concepts/*.md`.
