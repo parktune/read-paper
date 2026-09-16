@@ -30,7 +30,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from _backend import detect  # noqa: E402
 
-UA = "read-paper/0.1 (+https://github.com/pty2792/read-paper)"
+UA = "read-paper/0.1 (+https://github.com/parktune/read-paper)"
 ARXIV_ID = re.compile(r"(?:(?<=/)|^|arXiv:)((?:\d{4}\.\d{4,5}|[a-z\-]+(?:\.[A-Z]{2})?/\d{7})(?:v\d+)?)", re.I)
 MONTHS = {m: i for i, m in enumerate("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split(), 1)}
 

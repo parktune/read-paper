@@ -53,7 +53,7 @@ directly as an [Obsidian](https://obsidian.md) vault.
 ## Install
 
 ```
-claude plugin marketplace add pty2792/read-paper
+claude plugin marketplace add parktune/read-paper
 claude plugin install read-paper@read-paper
 ```
 

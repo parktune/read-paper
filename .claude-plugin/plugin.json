@@ -4,9 +4,9 @@
   "description": "Turn a paper (URL or PDF) into a structured Markdown note with cropped figures and cross-paper concept notes, saved where you choose. No Notion or Confluence account needed.",
   "author": {
     "name": "Taeyoon Park",
-    "url": "https://github.com/pty2792"
+    "url": "https://github.com/parktune"
   },
-  "repository": "https://github.com/pty2792/read-paper",
+  "repository": "https://github.com/parktune/read-paper",
   "license": "MIT",
   "keywords": ["claude-code", "plugin", "skill", "paper", "arxiv", "literature-review", "research", "notes", "obsidian"]
 }
