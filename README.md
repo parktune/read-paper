@@ -1,23 +1,26 @@
 # read-paper
 
 A [Claude Code](https://claude.com/claude-code) plugin that turns a paper into a note you
-will actually reopen.
+will actually reopen. Linux, macOS and Windows.
 
 ```
-/read-paper https://arxiv.org/pdf/1706.03762
+/read-paper:setup                                   once
+/read-paper https://arxiv.org/pdf/1706.03762        every paper
 /read-paper ~/Downloads/some-paper.pdf
 ```
 
 Give it an arXiv link, any PDF URL, or a local file. It asks where to save, reads the whole
-paper, crops the two or three figures that carry the argument, and writes a structured
-Markdown note plus a set of concept notes that accumulate understanding across papers.
-Everything is local files. No Notion, Confluence, or any other account is involved.
+paper, crops the figures that carry the argument, writes a structured Markdown note, updates
+the concept notes the paper touches, and — if you configured it — publishes the same note to
+Notion and/or Confluence.
+
+The notes are plain files in a folder you choose. No git, no database, no account required.
 
 ## What you get
 
 ```
-~/Downloads/ReadPaper/                  (or wherever you chose)
-├── .read-paper.json                    domain, language, backend for this directory
+~/Documents/ReadPaper/                  (or wherever you chose)
+├── .read-paper.json                    per-directory overrides (optional)
 ├── pdfs/
 │   └── attention-is-all-you-need.pdf
 ├── attention-is-all-you-need/
@@ -25,8 +28,8 @@ Everything is local files. No Notion, Confluence, or any other account is involv
 │   └── figures/
 │       ├── fig1-architecture.png
 │       └── fig2-bleu-table.png
-└── concepts/
-    ├── self-attention.md               cross-paper notes, [[wikilinked]]
+└── concepts/                           cross-paper notes, [[wikilinked]]
+    ├── self-attention.md               (can live elsewhere: see setup)
     └── positional-encoding.md
 ```
 
@@ -57,58 +60,69 @@ claude plugin marketplace add parktune/read-paper
 claude plugin install read-paper@read-paper
 ```
 
-Then, for figure cropping and text extraction, one of:
+Python 3.10+ is required. For figure cropping and text extraction, one of:
 
-- **poppler** (recommended): `brew install poppler` · `sudo apt-get install poppler-utils` · `choco install poppler`
+- **poppler** (recommended): `brew install poppler` · `sudo apt-get install poppler-utils` · `winget install oschwartz10612.Poppler`
 - **PyMuPDF** (fallback): `python3 -m pip install --user pymupdf`
 
-Run `scripts/setup.sh` from the plugin directory to see what is detected. Without either,
-the note is still written, just without figures. The skill will offer the install command
-on first use but never runs it without your say-so.
+Without either, the note is still written, just without figures. Setup offers the install
+command but never runs it without your say-so.
+
+## Setup
+
+`/read-paper:setup` asks, once:
+
+| Setting | Default |
+|---|---|
+| Research domain (drives the Personal Take section) | — |
+| Default save directory | `~/Documents/ReadPaper` |
+| Concept-notes directory | `<save-dir>/concepts` |
+| Note language | same as the conversation |
+| Figures per note · note length | 2–3 · 1,500–2,500 words |
+| Publish to Notion · Confluence | off |
+
+For **Notion** you paste a Papers database URL, or let setup create one (Name, Source,
+Published, Read, Tags, Summary, Confluence). For **Confluence** you paste the parent page or
+folder URL; figures need an Atlassian API token (the MCP server cannot upload attachments),
+which you can store in the config file or provide as `ATL_SITE` / `ATL_EMAIL` / `ATL_TOKEN`.
+Each target has a default — publish on every run, or only when you ask — and you can override
+it in plain words on any run ("also put this one in Confluence").
+
+Both need the matching MCP server connected in Claude Code (`claude mcp add --transport http
+-s user notion https://mcp.notion.com/mcp`, `claude mcp add --transport http -s user atlassian
+https://mcp.atlassian.com/v1/sse`). Without it the target is skipped and the report says so.
+
+Settings live in one JSON file you can edit by hand — `~/.config/read-paper/config.json`
+(Linux/macOS) or `%APPDATA%\read-paper\config.json` (Windows) — with optional per-directory
+overrides in `<save-dir>/.read-paper.json`. Re-run `/read-paper:setup` any time; it shows the
+current values. If you run `/read-paper` before setup, setup runs first and the paper follows.
 
 ## How a run goes
 
-1. **Where to save?** — a question with `~/Downloads/ReadPaper/` recommended, your recent
-   directories, a project-local directory if one fits, or a path you type. On the first run
-   it also asks your research domain (for the Personal Take section) and the note language
-   (default: whatever language you are talking in).
+1. **Where to save?** — one question: your default (recommended), recent directories, a
+   project-local directory if one fits, or a path you type.
 2. **Fetch** — downloads the PDF; for arXiv it reads title, authors, submission history
    (v1 date and latest version) and the comments line from the abs page. A local PDF with
    an arXiv stamp gets the same treatment.
 3. **Read** — the full text, not the abstract.
 4. **Figures** — renders candidate pages at low resolution, picks the figures, crops them at 200 DPI.
 5. **Write** — the note, then the concept notes it touches (create or update, never append-only).
-6. **Remember** — the directory, domain and language, so next time they are one click away.
-
-## Configuration
-
-| File | Holds |
-|---|---|
-| `~/.config/read-paper/config.json` | recent directories, default domain and language |
-| `<save-dir>/.read-paper.json` | domain, note language, figure backend for that directory |
-
-Both are plain JSON you can edit. Delete them to get the first-run questions again.
-
-## Publishing to Notion or Confluence
-
-Not built in, on purpose: everyone's workspace is different. If you have a Notion or
-Atlassian MCP server connected in Claude Code, ask it to upload the note — the Markdown
-maps straight onto a Notion page or a Confluence page, and the figures go through that
-server's file-upload tool. The first line and section structure carry over unchanged.
+6. **Publish** — Notion and/or Confluence per your defaults; failures never touch the local note.
 
 ## Scripts
 
-All in `scripts/`, all print JSON, all usable on their own:
+All in `scripts/`, all print JSON, all usable on their own, all cross-platform Python:
 
 | Script | Purpose |
 |---|---|
-| `setup.sh [--json]` | detect poppler / PyMuPDF, print install hints (never installs) |
-| `config.py options\|show\|record\|tags` | read and write the two config files; list tags already in use |
+| `setup.py [--json]` | detect poppler / PyMuPDF, print install hints (never installs) |
+| `config.py options\|show\|set\|record\|tags` | read and write settings (`set key=value`, dotted keys nest) |
 | `fetch_paper.py <ref> --dir DIR [--slug S] [--offline]` | download the PDF, arXiv metadata, slug |
 | `pdf_text.py <pdf> [--pages a-b] [--out f]` | text extraction (layout-preserving) |
 | `pdf_figures.py scout\|crop` | page thumbnails at 80 DPI; crops at 200 DPI |
-
-Python 3.10+ and the standard library only; the PDF work goes through poppler or PyMuPDF.
+| `md2notion.py note.md --uploads map.json --out body.md` | note → Notion-flavored Markdown |
+| `md2confluence.py note.md --out body.html [--figures map.json]` | note → Confluence HTML+ (math macros, panels, tables) |
+| `confluence_upload.py <page-id> <png>` | attach a figure via REST, print the `<figure>` snippet |
 
 ## License
 

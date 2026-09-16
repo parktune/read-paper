@@ -11,7 +11,7 @@ Workflow:
   scripts/pdf_figures.py backend
 
 crop arguments: <page> <x> <y> <width> <height> in pixels at --dpi (default 200).
-Exit code 2 means no backend is installed (run scripts/setup.sh).
+Exit code 2 means no backend is installed (run scripts/setup.py).
 """
 import argparse
 import json
@@ -87,7 +87,7 @@ def main() -> None:
         print(json.dumps({"backend": backend}))
         return
     if backend == "none":
-        print("no PDF backend (poppler or PyMuPDF); run scripts/setup.sh", file=sys.stderr)
+        print("no PDF backend (poppler or PyMuPDF); run scripts/setup.py", file=sys.stderr)
         raise SystemExit(2)
     if a.cmd == "scout":
         paths = scout(a.pdf, a.first, a.last, a.out_dir, a.dpi, backend)

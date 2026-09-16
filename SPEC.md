@@ -1,6 +1,6 @@
 # read-paper — Specification
 
-Status: clarified requirement, 2026-09-16. This file is the reference for the implementation.
+Status: clarified requirement, 2026-09-16 (setup and publishing added the same day). This file is the reference for the implementation.
 
 ## Goal
 
@@ -32,6 +32,10 @@ The skill ports these conventions from the author's private research workflow:
 - Contents: `skills/read-paper/SKILL.md`, `scripts/` (setup, PDF text extraction,
   figure crop, config read/write), `README.md`, `LICENSE`.
 - All documentation, skill text, and script comments are in **English**.
+- Runs on Linux, macOS and Windows: every script is Python (no shell scripts), paths go
+  through `pathlib`, no symlinks, `python3` with a `python` fallback on Windows.
+- No git. The plugin exists so that notes do **not** have to live in a git repository; it
+  never commits, and never assumes the save directory is a repo.
 
 ## Invocation
 
@@ -57,31 +61,55 @@ Input handling:
 - Other URL: download the PDF; publication date from the PDF first page or user input.
 - Local path: use as is; publication date from the PDF first page (arXiv stamp) or user input.
 
-## Step 1 — ask where to save (mandatory tool call)
+## Setup: `/read-paper:setup` (one-time, re-runnable)
 
-The first action is an `AskUserQuestion` call asking for the save directory. Options,
-in this order:
+A second skill collects every preference so `/read-paper` never asks about them. Questions,
+each via `AskUserQuestion`, showing the current value when re-run:
 
-1. `~/Downloads/ReadPaper/` — **(Recommended)**, always present.
-2. The most recently used directory from the config file — only if one exists and differs from 1.
+1. Research domain (free text) — drives the Personal Take section.
+2. Default save directory — `~/Documents/ReadPaper` recommended.
+3. Note language — same as the conversation (default) / English / other.
+4. Concept-notes directory — `<save-dir>/concepts` by default; may point elsewhere so several
+   paper directories share one concepts directory.
+5. Figures per note (2–3 default) and note length (1,500–2,500 words default).
+6. Publishing targets, **multi-select checkboxes**: `[ ] Notion  [ ] Confluence`.
+   - Notion: paste a Papers database URL, or let setup create one (`Name`, `Source`,
+     `Published`, `Read`, `Tags`, `Summary`, `Confluence`). For an existing database setup reads
+     the schema, proposes a field→property mapping, and confirms it.
+   - Confluence: paste the parent page/folder URL; setup resolves site, `spaceId`, `parentId`
+     via MCP. Figures need a REST API token (stored in the config file with mode 600, or via
+     `ATL_SITE`/`ATL_EMAIL`/`ATL_TOKEN`), otherwise text-only publishing.
+   - Per target, a default: publish on every run (`always`) or only on request (`ask`).
+   - A target whose MCP tools are not present is recorded as disabled with a note to reconnect.
+7. PDF backend check with install hints; installs only on explicit choice.
+
+Writes `setup_done=true`. If `/read-paper` finds no configuration it runs setup inline and
+then continues with the paper in the same turn.
+
+## Step 1 of a run — ask where to save (mandatory tool call)
+
+The first action after loading settings is an `AskUserQuestion` call asking for the save
+directory — on **every** run, even with a full configuration. Options, in this order:
+
+1. The configured default directory — **(Recommended)**, always present.
+2. Recently used directories from the config file — only if they exist and differ from 1.
 3. A directory that fits the current project context (e.g. a `papers/` or `notes/` dir
    in the working repo) — only if such a context exists.
 4. Free text via the built-in "Other" option.
 
-On the **first run** (no config found) the same call also asks:
-
-- Research domain (free text with examples: "computational biology", "recommender systems",
-  "speech recognition"). Used for the Personal Take section.
-- Note language: default "same as the conversation"; may be fixed to one language.
-
-Never skip the question, even when a config exists — the config only changes the options.
+Domain and language are never asked in a run.
 
 ## Configuration
 
-- Per-directory: `<save-dir>/.read-paper.json`
-- Global fallback: `~/.config/read-paper/config.json`
-- Fields: `last_dir`, `recent_dirs` (max 5), `domain`, `note_language`, `figure_backend`.
-- Written by `scripts/config.py` so the skill and scripts share one reader/writer.
+- Global: `~/.config/read-paper/config.json` (Linux/macOS, honours `XDG_CONFIG_HOME`) or
+  `%APPDATA%\read-paper\config.json` (Windows). Mode 600 where supported (may hold a token).
+- Per-directory overrides: `<save-dir>/.read-paper.json`.
+- Keys: `domain`, `save_dir`, `concepts_dir`, `note_language`, `figures`, `note_length`,
+  `setup_done`, `recent_dirs`, `last_dir`,
+  `publish.notion.{enabled,default,url,data_source_id,properties}`,
+  `publish.confluence.{enabled,default,url,site,space_id,parent_id,email,token,figures}`.
+- Read and written only through `scripts/config.py` (`options`, `show`, `set KEY=VALUE`,
+  `record`, `tags`).
 
 ## Output layout
 
@@ -93,7 +121,7 @@ Never skip the question, even when a config exists — the config only changes t
     <slug>.md
     figures/fig1-<short-name>.png
     figures/fig2-<short-name>.png
-  concepts/
+  concepts/                 (or the configured concepts_dir)
     <concept-name>.md
 ```
 
@@ -142,7 +170,7 @@ Tags: reuse tags already present across existing notes in `<save-dir>` before in
 
 ## Figures and PDF text — dependencies
 
-`scripts/setup.sh` (run on install or first use):
+`scripts/setup.py` (run by setup and at the start of every run; Python, so it works on Windows too):
 
 1. Check for poppler (`pdftoppm`, `pdftotext`). If missing, print the install command for the
    detected OS (`apt install poppler-utils`, `brew install poppler`, `choco install poppler`)
@@ -155,15 +183,29 @@ Tags: reuse tags already present across existing notes in `<save-dir>` before in
 (poppler first, then PyMuPDF) and expose the same CLI either way. Crop coordinates are
 given in points at 200 DPI, as in the original pipeline.
 
-## Notion / Confluence
+## Publishing (Notion, Confluence)
 
-Not automated. `README.md` contains one short section: if a Notion or Atlassian MCP server
-is connected, the generated Markdown can be uploaded as is (figures via the server's file
-upload), and the first-line and section conventions carry over unchanged.
+Performed by the plugin itself through the user's own MCP servers, after the local note is
+written. Per target: `enabled` false → skip; `default` `always` → publish; `default` `ask` →
+only when the user asked in this conversation; the user's words override the default either
+way. A publishing failure never undoes the local note.
+
+- **Notion**: figures via `notion-create-file-upload` + POST; `scripts/md2notion.py` converts the
+  note (front matter → properties JSON, `> 💡` → callout, pipe tables → `<table>`, `$x$` →
+  `$\`x\`$`, images → `file-upload://`); new tags are added to the multi-select first;
+  `notion-create-pages` into the configured data source with the configured property mapping;
+  verified with `notion-fetch`.
+- **Confluence**: `scripts/md2confluence.py` converts to HTML+ (info panel, `easy-math-block`
+  extension, tables, `{{FIG:...}}` placeholders); `createConfluencePage` placeholder →
+  `scripts/confluence_upload.py` attaches figures via REST and prints `<figure>` snippets →
+  re-convert with `--figures` → `updateConfluencePage` → ADF verification (macro bodies
+  non-empty, media and table counts). The page URL is written back to the Notion page's
+  `Confluence` property when both targets are configured.
 
 ## Out of scope
 
-- Publishing automation, Notion database schemas, Confluence storage-format conversion.
+- Confluence REST fallback for page creation (only attachments use REST); Notion has no fallback.
+- Named profiles, git automation, writing-style settings.
 - Any personal or company-specific identifiers.
 - Non-English documentation.
 
@@ -174,28 +216,35 @@ upload), and the first-line and section conventions carry over unchanged.
   the paper without the user's approval.
 - Non-ASCII strings in tool-call parameters are written as literal UTF-8, never `\uXXXX`.
 - The author's existing private workflow (`~/work/research`) is left untouched.
+- No git operations of any kind.
 
 ## Success criteria
 
-On a fresh machine and account:
+On a fresh machine and account (any of Linux, macOS, Windows):
 
-1. `claude plugin marketplace add <owner>/read-paper` + install succeeds.
-2. `/read-paper https://arxiv.org/pdf/<id>` first asks for the save directory (and domain on
-   first run).
-3. The chosen directory receives `pdfs/`, `<slug>/<slug>.md`, `<slug>/figures/*.png`,
-   and created/updated `concepts/*.md`.
-4. A second run offers the previous directory as an option.
-5. Without poppler and PyMuPDF the note is still produced, minus figures, with a clear message.
+1. `claude plugin marketplace add parktune/read-paper` + install succeeds.
+2. `/read-paper:setup` alone stores every setting above; a Notion Papers database is created
+   when the user asks for one.
+3. `/read-paper https://arxiv.org/pdf/<id>` asks one question (save directory) and produces
+   `pdfs/`, `<slug>/<slug>.md`, `<slug>/figures/*.png`, created/updated concept notes in the
+   configured concepts directory, and the configured publications.
+4. `/read-paper` without prior setup runs setup inline and then processes the paper.
+5. Without poppler and PyMuPDF the note is still produced, minus figures, with a clear message;
+   without the MCP servers the local note is produced and the targets are reported as skipped.
 
 ## Decisions log
 
 | Question | Decision |
 |---|---|
 | Packaging | Plugin (skill + scripts); the GitHub repo doubles as marketplace |
-| Notion / Confluence | Local Markdown only; README note that MCP upload is possible |
+| Notion / Confluence | Published by the plugin via the user's MCP servers; targets chosen in setup with multi-select; per-target default always/ask (revised 2026-09-16) |
 | Concept notes | Included, under `<save-dir>/concepts/` |
 | Note language | Follows the conversation; docs in English |
-| Remembering paths | Config file + recent directory offered as an option |
-| Personal Take domain | Asked on first run, stored in config |
+| Remembering paths | Config file + recent directory offered as an option; the question is asked on every run |
+| Personal Take domain | Asked in `/read-paper:setup`, stored in config (no first-run questions) |
 | PDF dependencies | poppler first (setup offers install), PyMuPDF fallback, else no figures |
-| Names | repo `read-paper`, skill `/read-paper`, default dir `~/Downloads/ReadPaper/` |
+| Names | repo `read-paper`, skills `/read-paper` and `/read-paper:setup`, default dir `~/Documents/ReadPaper/` |
+| Missing config | `/read-paper` runs setup inline, then continues |
+| Config scope | one global file + per-directory overrides |
+| Extra setup items | concepts directory, figure count, note length |
+| Platforms | Linux, macOS, Windows; Python-only scripts, no git |

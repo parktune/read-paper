@@ -1,6 +1,6 @@
 ---
 name: read-paper
-description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes into a directory the user chooses. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", or gives an arXiv link or a PDF path and wants it organized.
+description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes, then publish to Notion / Confluence if configured. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", or gives an arXiv link or a PDF path and wants it organized.
 argument-hint: "[article-url | article-filepath]"
 ---
 
@@ -9,7 +9,9 @@ argument-hint: "[article-url | article-filepath]"
 Turn one paper into a durable note. The note is a by-product of actually reading the
 paper: read the whole text, look at the figures, then write. Do not paraphrase the abstract.
 
-Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Every script prints JSON; read it.
+Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Every script prints JSON; read it. Run them
+with `python3`, or `python` on Windows when `python3` is not on PATH. Use forward slashes in
+paths; the scripts handle the rest on every OS.
 
 ## 0. Resolve the argument
 
@@ -20,46 +22,52 @@ If it is empty, ask for it with `AskUserQuestion` (one question, options like
 "I'll paste an arXiv URL" / "I'll give a local path"; the user types the value under Other).
 Do not fail silently.
 
-## 1. Ask where to save — always, and always as a tool call
-
-Run:
+## 1. Load settings; run setup if there are none
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" options
 ```
 
-Then call `AskUserQuestion`. This step is never skipped, even when a config exists.
-Build the save-directory options in this order and drop the ones that do not apply:
+If `configured` is false, read `${CLAUDE_PLUGIN_ROOT}/skills/setup/SKILL.md` and follow it now,
+in this same turn. When it finishes, come back here and continue — do not ask the user to run
+anything again. Re-run `config.py options` afterwards.
 
-1. `recommended` from the script (`~/Downloads/ReadPaper/`) — label it `(Recommended)`, first.
+## 2. Ask where to save — always, and always as a tool call
+
+Call `AskUserQuestion` on every run, even with a full config. Options, in this order, dropping
+the ones that do not apply:
+
+1. `recommended` from the script (the configured default) — label it `(Recommended)`, first.
 2. Each entry of `recent` — "Last used" for the first one.
 3. A directory that fits the current project, if there is one (e.g. the working repo has a
    `papers/`, `notes/`, or `docs/` directory, or the user mentioned one earlier).
 4. Nothing else. The built-in "Other" lets the user type a path.
 
-If `first_run` is true, or `domain` is null, add two more questions **to the same call**:
+Do not ask about domain or language here; those come from setup. Write all user-visible
+strings as literal UTF-8, never `\uXXXX` escapes.
 
-- **Research domain** — free text via Other; offer 3 neutral examples as options
-  (e.g. "computational biology", "recommender systems", "speech recognition"). This is
-  what the Personal Take section is written from.
-- **Note language** — options: "Same as our conversation (Recommended)", "English", "Other".
-
-Write all user-visible strings as literal UTF-8, never `\uXXXX` escapes.
-
-## 2. Check the PDF backend
+Then read the effective settings for the chosen directory (per-directory overrides apply):
 
 ```bash
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/setup.sh" --json
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show --dir "<save-dir>"
+```
+
+`domain`, `note_language`, `concepts_dir`, `figures`, `note_length`, and `publish` drive the
+rest of the run.
+
+## 3. Check the PDF backend
+
+```bash
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/setup.py" --json
 ```
 
 - `backend` is `poppler` or `pymupdf`: continue.
 - `backend` is `none`: ask with `AskUserQuestion` before doing anything:
   "Install poppler (`<install_poppler>`) (Recommended)" / "Install PyMuPDF (`<install_pymupdf>`)" /
-  "Continue without figures". Run the install command only after the user picks it.
-  Never install anything without that explicit choice. If they decline, the note is written
-  without figures and the report says so.
+  "Continue without figures". Run the install command only after the user picks it. If they
+  decline, the note is written without figures and the report says so.
 
-## 3. Fetch the paper and its metadata
+## 4. Fetch the paper and its metadata
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/fetch_paper.py" "<ref>" --dir "<save-dir>"
@@ -69,13 +77,16 @@ The PDF is saved to `<save-dir>/pdfs/<slug>.pdf`. The JSON gives `title`, `autho
 `published` (arXiv **v1** date), `latest_version`, `latest_date`, `comments` (often the venue),
 `slug`, `note_dir`, `read` (today), and `warnings`.
 
+- **Slug**: the automatic slug is the title's first words, which is often poor. Prefer the name
+  people call the paper — the model or method name from the title before a colon, the arXiv
+  `comments`, the project page, or the first paragraph (e.g. `dreamer4`, `resnet`,
+  `attention-is-all-you-need`). Re-run with `--slug <name>` when the automatic one is a
+  truncated sentence. The slug names the folder, the PDF, and the wikilink target.
 - If `published` is null, find the date yourself: the arXiv stamp on page 1
   (`arXiv:XXXX.XXXXXvN [cs.XX] 12 Jun 2017`), the venue footer, or the copyright line. If you
   still cannot, ask the user; do not invent a date.
-- Override the slug with `--slug` when the automatic one is poor (too long, or a
-  generic word). The slug names the folder, the PDF, and the wikilink target.
 
-## 4. Read the paper
+## 5. Read the paper
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pdf_text.py" "<pdf>" --out "<scratch>/<slug>.txt"
@@ -85,20 +96,22 @@ Read the whole text (in chunks if long). While reading, note:
 
 - the one-sentence thesis (what changed, compared with what, by how much);
 - every equation you will need, with its notation;
-- the 2–3 figures that carry the argument (usually the overview diagram and the main result);
+- the figures that carry the argument (usually the overview diagram and the main result);
 - the key numbers and the strongest baseline;
 - what the authors concede in limitations, and what they do not.
 
-Then look at the context that already exists in `<save-dir>`:
+Then look at the context that already exists:
 
 ```bash
-ls "<save-dir>"/concepts/ 2>/dev/null
+ls "<concepts_dir>"
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" tags --dir "<save-dir>"
 ```
 
 Read the concept notes this paper touches. Reuse existing tags before inventing new ones.
 
-## 5. Crop the figures
+## 6. Crop the figures
+
+Target the configured `figures` count (default 2–3; `none` skips this step).
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pdf_figures.py" scout "<pdf>" <first> <last> "<scratch>/scout"
@@ -112,9 +125,8 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pdf_figures.py" crop "<pdf>" <page> <x> <
 ```
 
 Open each crop and confirm it is tight (no neighbouring text, no cut labels). Re-crop if not.
-Two to three figures; more only if the paper is unusually visual.
 
-## 6. Write the note
+## 7. Write the note
 
 Path: `<note_dir>/<slug>.md`. Start from `${CLAUDE_PLUGIN_ROOT}/templates/note.md` and fill
 every placeholder; delete guidance text in `{{...}}`.
@@ -124,27 +136,28 @@ Fixed conventions:
 - **First line**: `📄 Published: **YYYY-MM-DD** (arXiv vN · venue) · Source: [abs](…) · [pdf](…) · Affiliations · Read: YYYY-MM-DD`.
   Publication date comes **before** the read date — how recent the work is matters more than
   when you read it. If a later version exists, add it: `(arXiv v1 · v7 2023-08-02 · NeurIPS 2017)`.
-- **Callout**: one blockquote line with 💡 stating the thesis.
+- **Callout**: one blockquote line starting with 💡 stating the thesis.
 - **Sections, in this order**: Summary · Background and Motivation · Method (with `##` per
   component) · Results · Limitations · Personal Take · Related Concepts.
 - **Math**: `$$` blocks for display equations, `$...$` inline. Define symbols before use.
-- **Results**: a table with the paper's number and the strongest baseline's number, then the
-  ablations that change the conclusion. No adjectives without a number next to them.
-- **Personal Take**: written from the configured research domain, in first person. What
-  transfers to that domain, what does not and why, what you would try first. This is the
-  section that makes the note worth keeping; do not make it a restatement of Summary.
-- **Related Concepts**: `[[concept-name]]` links to files in `<save-dir>/concepts/`, one line
-  each on how the paper bears on that concept.
-- **Language**: the configured note language (default: the language of the conversation).
-  Keep the section headings in that language too, except code, math, and proper names.
-- **Depth**: roughly 1,500–2,500 words. Each of Summary, Method, Results, Limitations,
-  Personal Take is a real section, not a paragraph.
+- **Results**: a pipe table with the paper's number and the strongest baseline's number, then
+  the ablations that change the conclusion. No adjectives without a number next to them.
+- **Personal Take**: written from the configured `domain`, in first person. What transfers to
+  that domain, what does not and why, what you would try first. This is the section that makes
+  the note worth keeping; do not make it a restatement of Summary.
+- **Related Concepts**: `[[concept-name]]` links to files in `concepts_dir`, one line each on
+  how the paper bears on that concept.
+- **Language**: `note_language` (`conversation` = the language the user is writing in). Section
+  headings follow it too, except code, math, and proper names.
+- **Depth**: the configured `note_length` (default 1,500–2,500 words). Each of Summary, Method,
+  Results, Limitations, Personal Take is a real section, not a paragraph.
 - Plain declarative prose. No emoji beyond the two above, no marketing verbs.
+- Images as `![caption](figures/figN-name.png)` on their own line — the converters rely on it.
 
-## 7. Update the concept notes
+## 8. Update the concept notes
 
 For each concept the paper genuinely bears on (typically 2–4), create or update
-`<save-dir>/concepts/<concept-name>.md` from `${CLAUDE_PLUGIN_ROOT}/templates/concept.md`.
+`<concepts_dir>/<concept-name>.md` from `${CLAUDE_PLUGIN_ROOT}/templates/concept.md`.
 
 A concept note is **not** a paper summary. It holds the understanding that cuts across
 papers: what the concept is, what each paper adds (`[[<slug>]]` with the specific claim and a
@@ -152,35 +165,79 @@ number), where the papers disagree, what is open. When a new paper contradicts s
 existing note, rewrite the paragraph rather than appending a caveat. Link concepts to each
 other with `[[other-concept]]`.
 
-Use kebab-case file names. Check `ls concepts/` before creating a file to avoid near-duplicates
-(`attention-mechanism.md` vs `self-attention.md`).
+Use kebab-case file names. Check the directory listing before creating a file to avoid
+near-duplicates (`attention-mechanism.md` vs `self-attention.md`).
 
-## 8. Remember the choices
+## 9. Publish (Notion, Confluence)
+
+Decide per target from `publish.<target>`: `enabled` false → skip; `default` `always` → publish;
+`default` `ask` → publish only if the user asked in this conversation ("also put it in
+Confluence"). The user's words override the default in both directions ("skip Notion this
+time"). A publish failure never undoes the local note; report it and move on.
+
+If the target's MCP tools are not available in this session, skip it and say so in the report.
+
+### Notion
+
+1. Upload each figure: `notion-create-file-upload` (one per PNG), then POST the file to the
+   returned `upload_url` with the returned headers (use `curl -F` or Python `urllib`). Collect
+   `{"figures/figN-name.png": "<file-upload id>"}` into `<scratch>/uploads.json`.
+2. Convert:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/md2notion.py" "<note>" --uploads "<scratch>/uploads.json" --out "<scratch>/notion.md" --meta "<scratch>/meta.json"
+   ```
+3. Tags: the multi-select must already contain every tag. Fetch the data source, and if any
+   tag is new, add it with `notion-update-data-source` (`ALTER COLUMN "<Tags>" SET MULTI_SELECT(...)`
+   listing **all existing options plus the new ones**) before creating the page.
+4. `notion-create-pages` with parent `{data_source_id}` from config, properties mapped through
+   `publish.notion.properties` (title ← `title` + ` (<institution> <year>)`, source ← `venue`,
+   published/read ← dates, tags, summary ← the 💡 line), and `content` = the converted body.
+5. `notion-fetch` the new page and confirm the figure count and headings.
+
+### Confluence
+
+1. Convert once to get the title and placeholders:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/md2confluence.py" "<note>" --out "<scratch>/conf.html"
+   ```
+2. `createConfluencePage` with `spaceId`, `parentId` from config, `contentFormat: html`, the
+   note title, and a one-line placeholder body. Keep the returned page id.
+3. If figures are enabled for Confluence (`publish.confluence.figures` is not false and
+   credentials exist), attach each PNG:
+   ```bash
+   python3 "${CLAUDE_PLUGIN_ROOT}/scripts/confluence_upload.py" <page-id> "<note_dir>/figures/figN-name.png"
+   ```
+   and collect `{"figures/figN-name.png": "<snippet>"}` into `<scratch>/figures.json`. Re-run
+   `md2confluence.py` with `--figures "<scratch>/figures.json"`.
+4. `updateConfluencePage` with the final HTML.
+5. `getConfluencePage` with `contentFormat: atlas_doc_format` and check: every `easy-math-block`
+   extension has a non-empty `macroParams.body.value`, the media count equals the figure count,
+   the table count matches.
+6. If a Notion page was created and its mapping has `confluence`, write the page URL into that
+   property with `notion-update-page`.
+
+## 10. Remember the directory and report
 
 ```bash
-python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" record --dir "<save-dir>" --domain "<domain>" --language "<lang>" --backend "<backend>"
+python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" record --dir "<save-dir>"
 ```
-
-Pass `--domain` and `--language` only when they were asked this run.
-
-## 9. Report
 
 Tell the user, briefly:
 
 - the note path, the figure count, and the concept notes created or updated;
 - the publication date and version you used, and where it came from;
+- the Notion / Confluence URLs, or why a target was skipped;
 - anything you could not do (no figures, unconfirmed date) and why.
 
-Do not paste the note into the chat. If the user has a Notion or Atlassian MCP server
-connected and asks to publish, the Markdown can be uploaded as is — the first line and
-section structure carry over unchanged; figures go through that server's file-upload tool.
+Do not paste the note into the chat.
 
 ## Rules
 
-- The save-directory question (step 1) is always an `AskUserQuestion` call, never plain text,
-  never skipped.
-- Nothing is installed, and nothing is written outside `<save-dir>` and the scratch directory,
-  without the user choosing it.
+- The save-directory question (step 2) is always an `AskUserQuestion` call, never plain text,
+  never skipped. Domain and language are never asked here — that is `/read-paper:setup`.
+- Nothing is installed, published, or written outside `<save-dir>`, `concepts_dir`, and the
+  scratch directory without the user's configuration or explicit words.
+- No git operations. The save directory is just files; whether it is under version control is
+  not this skill's concern.
 - Every fact in the note comes from the paper text or figures. If the text does not support a
   number, leave it out.
-- The user's own words in the config (domain, language) are written back exactly as given.

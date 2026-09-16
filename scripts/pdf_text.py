@@ -7,7 +7,7 @@
   scripts/pdf_text.py paper.pdf --info          page count and backend as JSON
 
 Layout mode is used so tables and two-column pages stay readable.
-Exit code 2 means no backend is installed (run scripts/setup.sh).
+Exit code 2 means no backend is installed (run scripts/setup.py).
 """
 import argparse
 import json
@@ -55,7 +55,7 @@ def main() -> None:
         print(json.dumps({"backend": backend, "pages": page_count(a.pdf, backend)}))
         return
     if backend == "none":
-        print("no PDF backend (poppler or PyMuPDF); run scripts/setup.sh", file=sys.stderr)
+        print("no PDF backend (poppler or PyMuPDF); run scripts/setup.py", file=sys.stderr)
         raise SystemExit(2)
     first, last = parse_pages(a.pages)
     text = extract(a.pdf, first, last, backend)
