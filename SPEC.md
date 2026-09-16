@@ -42,9 +42,9 @@ The skill ports these conventions from the author's private research workflow:
 Examples:
 
 ```
-/read-paper https://arxiv.org/pdf/2509.24527
-/read-paper https://arxiv.org/abs/2509.24527
-/read-paper ~/Downloads/NitroGen.pdf
+/read-paper https://arxiv.org/pdf/1706.03762
+/read-paper https://arxiv.org/abs/1706.03762
+/read-paper ~/Downloads/attention-is-all-you-need.pdf
 ```
 
 Exactly one positional argument. With no argument the skill asks for the URL or path
@@ -70,8 +70,8 @@ in this order:
 
 On the **first run** (no config found) the same call also asks:
 
-- Research domain (free text with examples: "autonomous driving", "robot manipulation",
-  "NLP"). Used for the Personal Take section.
+- Research domain (free text with examples: "computational biology", "recommender systems",
+  "speech recognition"). Used for the Personal Take section.
 - Note language: default "same as the conversation"; may be fixed to one language.
 
 Never skip the question, even when a config exists — the config only changes the options.
@@ -97,7 +97,7 @@ Never skip the question, even when a config exists — the config only changes t
     <concept-name>.md
 ```
 
-`<slug>` is the kebab-case short name of the paper (e.g. `nitrogen`, `latent-bridge`).
+`<slug>` is the kebab-case short name of the paper (e.g. `attention-is-all-you-need`, `resnet`).
 
 ## Note format (`<slug>/<slug>.md`)
 
