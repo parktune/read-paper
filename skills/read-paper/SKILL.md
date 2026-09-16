@@ -45,7 +45,13 @@ the ones that do not apply:
 2. Each entry of `recent` — "Last used" for the first one.
 3. A directory that fits the current project, if there is one (e.g. the working repo has a
    `papers/`, `notes/`, or `docs/` directory, or the user mentioned one earlier).
-4. Nothing else. The built-in "Other" lets the user type a path.
+4. **A new subfolder under the default** — always present, so the question never has fewer
+   than two options (the tool rejects single-option questions). Label it
+   "New subfolder under <default>"; when chosen, take the folder name from the user's Other
+   text (or ask once more) and use `<default>/<folder>` as this run's save directory. Concept
+   notes still go to the configured `concepts_dir`, not into the subfolder.
+
+The built-in "Other" lets the user type any path. Never add an option that only duplicates it.
 
 If `detail` in the settings is `ask`, add a **second question to the same call**: the analysis
 detail level — `standard (Recommended)` / `brief` / `deep` (see the table in step 6). If `detail`
@@ -90,6 +96,10 @@ The PDF is saved to `<save-dir>/pdfs/<slug>.pdf`. The JSON gives `title`, `autho
   `comments`, the project page, or the first paragraph (e.g. `dreamer4`, `resnet`,
   `attention-is-all-you-need`). Re-run with `--slug <name>` when the automatic one is a
   truncated sentence. The slug names the folder, the PDF, and the wikilink target.
+- **Existing note**: if `<note_dir>/<slug>.md` already exists, ask with `AskUserQuestion`
+  before reading anything: "Publish the existing note as is (Recommended)" / "Rewrite it" /
+  "Skip this paper". Skip the question when the user's message already said which
+  ("upload the existing note", "redo it"). "As is" jumps to step 9; "Skip" ends the run.
 - If `published` is null, find the date yourself: the arXiv stamp on page 1
   (`arXiv:XXXX.XXXXXvN [cs.XX] 12 Jun 2017`), the venue footer, or the copyright line. If you
   still cannot, ask the user; do not invent a date.
@@ -258,7 +268,8 @@ Do not paste the note into the chat.
 ## Rules
 
 - The save-directory question (step 2) is always an `AskUserQuestion` call, never plain text,
-  never skipped. Domain and language are never asked here — that is `/read-paper setup`.
+  never skipped, and always has at least two real options (the "new subfolder" option
+  guarantees it). Domain and language are never asked here — that is `/read-paper setup`.
 - Nothing is installed, published, or written outside `<save-dir>`, `concepts_dir`, and the
   scratch directory without the user's configuration or explicit words.
 - No git operations. The save directory is just files; whether it is under version control is

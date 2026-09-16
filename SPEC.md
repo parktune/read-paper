@@ -99,7 +99,13 @@ directory — on **every** run, even with a full configuration. Options, in this
 2. Recently used directories from the config file — only if they exist and differ from 1.
 3. A directory that fits the current project context (e.g. a `papers/` or `notes/` dir
    in the working repo) — only if such a context exists.
-4. Free text via the built-in "Other" option.
+4. A new subfolder under the default directory — always present, so the question always has
+   at least two options (`AskUserQuestion` rejects single-option questions). Concept notes stay
+   in the configured `concepts_dir`.
+5. Free text via the built-in "Other" option.
+
+If the paper's note already exists in the chosen directory, a second question asks:
+publish as is (default) / rewrite / skip — unless the user's message already said which.
 
 Domain and language are never asked in a run.
 
@@ -252,5 +258,6 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Config scope | one global file + per-directory overrides |
 | Extra setup items | concepts directory, figure count, note length |
 | Defaults (2026-09-16, after first real use) | setup re-run confirms destinations with Keep/Change |
+| Save-dir question (2026-09-16) | always ≥2 real options: default + "new subfolder under default"; existing note → publish-as-is / rewrite / skip |
 | Detail level (2026-09-16) | one `detail` setting replaces figures + note_length; 3 levels brief/standard/deep + `ask`; scope = length, figures, section depth, concept-note width; plugin default standard |
 | Platforms | Linux, macOS, Windows; Python-only scripts, no git |
