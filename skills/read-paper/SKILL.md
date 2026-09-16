@@ -111,7 +111,9 @@ Read the concept notes this paper touches. Reuse existing tags before inventing 
 
 ## 6. Crop the figures
 
-Target the configured `figures` count (default 2–3; `none` skips this step).
+Target the configured `figures` count (default 4–5; `none` skips this step). The overview
+diagram and the main result table or plot come first; then the ablation or analysis figure
+that changes the conclusion.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pdf_figures.py" scout "<pdf>" <first> <last> "<scratch>/scout"
@@ -149,8 +151,9 @@ Fixed conventions:
   how the paper bears on that concept.
 - **Language**: `note_language` (`conversation` = the language the user is writing in). Section
   headings follow it too, except code, math, and proper names.
-- **Depth**: the configured `note_length` (default 1,500–2,500 words). Each of Summary, Method,
-  Results, Limitations, Personal Take is a real section, not a paragraph.
+- **Depth**: the configured `note_length` (default 2,000–3,000 words, tables included; for
+  languages without word spacing count space-separated units the same way). Each of Summary,
+  Method, Results, Limitations, Personal Take is a real section, not a paragraph.
 - Plain declarative prose. No emoji beyond the two above, no marketing verbs.
 - Images as `![caption](figures/figN-name.png)` on their own line — the converters rely on it.
 

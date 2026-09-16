@@ -34,8 +34,8 @@ DEFAULTS = {
     "save_dir": DEFAULT_DIR,
     "concepts_dir": None,          # None -> <save_dir>/concepts
     "note_language": "conversation",
-    "figures": "2-3",
-    "note_length": "1500-2500",
+    "figures": "4-5",
+    "note_length": "2000-3000",
     "publish": {
         "notion": {"enabled": False, "default": "ask"},
         "confluence": {"enabled": False, "default": "ask"},

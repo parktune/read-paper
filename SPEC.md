@@ -15,7 +15,7 @@ The skill ports these conventions from the author's private research workflow:
 
 - First line states the **publication date before the read date** (recency matters more).
 - Fixed section structure with a one-line thesis up front.
-- Key figures (2–3) cropped from the PDF, each with a caption.
+- Key figures (4–5) cropped from the PDF, each with a caption.
 - Math in LaTeX; core numbers in tables.
 - A "Personal Take" section written from the reader's own research domain
   ("how does this apply to my problem"), not generic critique.
@@ -71,7 +71,8 @@ each via `AskUserQuestion`, showing the current value when re-run:
 3. Note language — same as the conversation (default) / English / other.
 4. Concept-notes directory — `<save-dir>/concepts` by default; may point elsewhere so several
    paper directories share one concepts directory.
-5. Figures per note (2–3 default) and note length (1,500–2,500 words default).
+5. Figures per note (4–5 default) and note length (2,000–3,000 words default). On re-run every
+   step, including publishing destinations and credentials, shows "Keep: <current>" first.
 6. Publishing targets, **multi-select checkboxes**: `[ ] Notion  [ ] Confluence`.
    - Notion: paste a Papers database URL, or let setup create one (`Name`, `Source`,
      `Published`, `Read`, `Tags`, `Summary`, `Confluence`). For an existing database setup reads
@@ -153,9 +154,9 @@ Body, in the language chosen (default: the conversation language):
    `# Personal Take` (from the configured domain: what transfers to my problem, what does not) /
    `# Related Concepts` (list of `[[concept-name]]` links to `concepts/`).
 4. Math: `$$` blocks for display, `$...$` inline. Figures: `![caption](figures/figN-name.png)`
-   with a caption line; 2–3 key figures.
+   with a caption line; 4–5 key figures.
 5. Depth: each of Summary, Method, Results, Limitations, Personal Take is substantive
-   (roughly 1,500–2,500 words total, not an abstract rewrite).
+   (roughly 2,000–3,000 words total including tables, not an abstract rewrite).
 
 Tags: reuse tags already present across existing notes in `<save-dir>` before inventing new ones.
 
@@ -247,4 +248,5 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Missing config | `/read-paper` runs setup inline, then continues |
 | Config scope | one global file + per-directory overrides |
 | Extra setup items | concepts directory, figure count, note length |
+| Defaults (2026-09-16, after first real use) | 4–5 figures, 2,000–3,000 words; setup re-run confirms destinations with Keep/Change |
 | Platforms | Linux, macOS, Windows; Python-only scripts, no git |

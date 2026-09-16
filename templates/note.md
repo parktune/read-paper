@@ -32,7 +32,7 @@ pdf: ../pdfs/{{SLUG}}.pdf
 
 # Results
 
-{{Setup in one paragraph, then a table of the key numbers with the strongest baseline. Then ablations that actually change the conclusion.}}
+{{Setup in one paragraph, then a table of the key numbers with the strongest baseline. Then ablations that actually change the conclusion. A second figure or table here is usual.}}
 
 | Setting | Metric | Ours | Baseline |
 |---|---|---|---|

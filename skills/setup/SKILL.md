@@ -14,7 +14,9 @@ Scripts live in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `python3`, or `p
 Windows when `python3` is not on PATH. Never install anything without an explicit choice.
 
 Re-running setup is normal: show the current value of each setting in the question and let the
-user keep it (offer "Keep: <current>" as the first option).
+user keep it (offer "Keep: <current>" as the first option). This applies to **every** step
+below, including the Notion and Confluence destinations, credentials, and per-target defaults
+— never silently carry a stored destination forward without showing it.
 
 ## 0. Where the settings go
 
@@ -41,8 +43,9 @@ override the global ones for that directory.
 1. **Concept-notes directory** — "Inside the save directory: `<save-dir>/concepts` (Recommended)"
    or Other. Concept notes accumulate across papers, so people who keep several paper
    directories often want one shared concepts directory.
-2. **Figures per note** — "2–3 (Recommended)", "1", "4–5", "None".
-3. **Note length** — "1,500–2,500 words (Recommended)", "Short: 600–1,000", "Long: 3,000+".
+2. **Figures per note** — "4–5 (Recommended)", "2–3", "1", "None".
+3. **Note length** — "2,000–3,000 words (Recommended)", "Short: 1,000–1,500", "Long: 3,500+".
+   Word counts are approximate and language-agnostic; tables count.
 
 ## 3. Publishing targets (one multi-select question)
 
@@ -50,6 +53,11 @@ Ask **where notes should also be published**, `multiSelect: true`:
 
 - `[ ] Notion` — a Papers database
 - `[ ] Confluence` — a page under a parent page or folder
+
+When a target is already configured, put its current destination and default in the label,
+e.g. `Notion (current: Papers DB · always)` / `Confluence (current: Papers folder · ask)`, so
+unchecking it is a visible decision. A target that was configured and is now unchecked gets
+`publish.<target>.enabled=false` (its destination stays in the file for a later re-enable).
 
 Nothing selected means local Markdown only; skip to step 6.
 
@@ -61,8 +69,11 @@ the MCP server and re-run setup — do not try to configure a target you cannot 
 
 ## 4. Notion (only if selected)
 
-Ask with one `AskUserQuestion`: "Paste the URL of an existing Papers database" (Other) or
-"Create a new Papers database for me (Recommended)".
+If a Notion destination is already stored, first ask: "Keep: <database title> (<url>)"
+(Recommended) / "Change". On Keep, skip to the default question below.
+
+Otherwise ask with one `AskUserQuestion`: "Paste the URL of an existing Papers database" (Other)
+or "Create a new Papers database for me (Recommended)".
 
 **Existing database**: call `notion-fetch` on the URL. Read the data source id and the
 property schema. Map the note's fields onto existing properties by type and name — title
@@ -86,7 +97,8 @@ simply not written.
 | Summary | rich_text |
 | Confluence | url |
 
-Then ask the default: "Publish to Notion on every run (Recommended)" / "Only when I ask".
+Then ask the default: "Publish to Notion on every run (Recommended)" / "Only when I ask"
+(with "Keep: <current>" first when re-running).
 
 Record:
 
@@ -101,7 +113,12 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" set \
 
 ## 5. Confluence (only if selected)
 
-Ask for the **parent page or folder URL** (Other; no default). Call `getConfluencePage` (or
+If a Confluence destination is already stored, first ask: "Keep: <parent title> (<url>)"
+(Recommended) / "Change". On Keep, also keep the stored credentials unless the user says
+otherwise, and skip to the default question below.
+
+Otherwise ask for the **parent page or folder URL** (Other; no default — every space is laid
+out differently, so nothing is guessed). Call `getConfluencePage` (or
 `getPagesInConfluenceSpace` / `search` when the URL is a folder or short link) to resolve the
 site (`https://<x>.atlassian.net`), `spaceId` and the parent `id`. Confirm the resolved title
 with the user.
@@ -112,7 +129,8 @@ Figures need the REST API because the MCP server cannot upload attachments. Ask 
 "Skip — publish text without figures". If storing, ask for email and token as free text
 (explain the token comes from https://id.atlassian.com/manage-profile/security/api-tokens).
 
-Then ask the default: "Publish to Confluence on every run" / "Only when I ask (Recommended)".
+Then ask the default: "Publish to Confluence on every run" / "Only when I ask (Recommended)"
+(with "Keep: <current>" first when re-running).
 
 Record:
 
@@ -142,7 +160,7 @@ install command only when chosen, then re-check.
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" set \
   domain="<domain>" save_dir="<dir>" note_language="<lang>" concepts_dir="<dir>" \
-  figures="<2-3>" note_length="<1500-2500>" setup_done=true
+  figures="<4-5>" note_length="<2000-3000>" setup_done=true
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show
 ```
 

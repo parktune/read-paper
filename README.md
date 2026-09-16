@@ -10,7 +10,8 @@ will actually reopen. Linux, macOS and Windows.
 ```
 
 Give it an arXiv link, any PDF URL, or a local file. It asks where to save, reads the whole
-paper, crops the figures that carry the argument, writes a structured Markdown note, updates
+paper, crops the four or five figures that carry the argument, writes a structured Markdown
+note (2,000–3,000 words by default), updates
 the concept notes the paper touches, and — if you configured it — publishes the same note to
 Notion and/or Confluence.
 
@@ -78,7 +79,7 @@ command but never runs it without your say-so.
 | Default save directory | `~/Documents/ReadPaper` |
 | Concept-notes directory | `<save-dir>/concepts` |
 | Note language | same as the conversation |
-| Figures per note · note length | 2–3 · 1,500–2,500 words |
+| Figures per note · note length | 4–5 · 2,000–3,000 words |
 | Publish to Notion · Confluence | off |
 
 For **Notion** you paste a Papers database URL, or let setup create one (Name, Source,
