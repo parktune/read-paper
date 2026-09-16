@@ -4,7 +4,7 @@ A [Claude Code](https://claude.com/claude-code) plugin that turns a paper into a
 will actually reopen. Linux, macOS and Windows.
 
 ```
-/read-paper:setup                                   once
+/read-paper setup                                   once
 /read-paper https://arxiv.org/pdf/1706.03762        every paper
 /read-paper ~/Downloads/some-paper.pdf
 ```
@@ -71,7 +71,7 @@ command but never runs it without your say-so.
 
 ## Setup
 
-`/read-paper:setup` asks, once:
+`/read-paper setup` asks, once:
 
 | Setting | Default |
 |---|---|
@@ -95,7 +95,7 @@ https://mcp.atlassian.com/v1/sse`). Without it the target is skipped and the rep
 
 Settings live in one JSON file you can edit by hand — `~/.config/read-paper/config.json`
 (Linux/macOS) or `%APPDATA%\read-paper\config.json` (Windows) — with optional per-directory
-overrides in `<save-dir>/.read-paper.json`. Re-run `/read-paper:setup` any time; it shows the
+overrides in `<save-dir>/.read-paper.json`. Re-run `/read-paper setup` any time; it shows the
 current values. If you run `/read-paper` before setup, setup runs first and the paper follows.
 
 ## How a run goes

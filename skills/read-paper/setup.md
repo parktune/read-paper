@@ -1,10 +1,7 @@
----
-name: setup
-description: One-time configuration for read-paper — research domain, default save directory, concept-notes directory, note language, figure count, note length, and optional Notion / Confluence publishing targets. Use when the user runs "/read-paper:setup", says "configure read-paper", "set up read-paper", "change my read-paper settings", or when /read-paper finds no configuration.
-argument-hint: "[--dir <save-dir>]"
----
+# read-paper setup (`/read-paper setup`)
 
-# read-paper setup
+This file is followed by the `read-paper` skill when its argument is `setup`, or when a run
+finds no configuration. It is not a separate skill, so `/read` + Tab completes to one command.
 
 Collect the reader's preferences once and store them, so `/read-paper` never has to ask
 about them again. Every question below goes through `AskUserQuestion`; user-visible strings are
@@ -65,7 +62,7 @@ Before asking, check which MCP tools exist in this session: Notion needs `notion
 `notion-fetch`, `notion-create-database`; Confluence needs `createConfluencePage`,
 `getConfluencePage`. If a target's tools are missing, still let the user select it, but then
 record `publish.<target>.enabled=false` with a note in the report that they should connect
-the MCP server and re-run setup — do not try to configure a target you cannot reach.
+the MCP server and run `/read-paper setup` again — do not try to configure a target you cannot reach.
 
 ## 4. Notion (only if selected)
 
@@ -165,5 +162,5 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show
 ```
 
 Report the final settings as a short table with the config file path, and say how to change
-one later (re-run `/read-paper:setup`, or edit the JSON). If setup was started from inside a
+one later (run `/read-paper setup` again, or edit the JSON). If setup was started from inside a
 `/read-paper` run, continue that run now without asking the user to repeat the command.

@@ -14,7 +14,7 @@ Commands (all print JSON):
   record --dir DIR               remember DIR as the last used directory
   tags   --dir DIR               tags already used by notes under DIR, most frequent first
 
-Keys written by /read-paper:setup:
+Keys written by `/read-paper setup`:
   domain, note_language, save_dir, concepts_dir, figures, note_length,
   publish.notion.{enabled,default,url,data_source_id,properties},
   publish.confluence.{enabled,default,url,site,space_id,parent_id,email,token}

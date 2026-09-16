@@ -1,7 +1,7 @@
 ---
 name: read-paper
-description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes, then publish to Notion / Confluence if configured. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", or gives an arXiv link or a PDF path and wants it organized.
-argument-hint: "[article-url | article-filepath]"
+description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes, then publish to Notion / Confluence if configured. "/read-paper setup" configures domain, directories, language, figure count, note length and publishing targets. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", "configure read-paper", or gives an arXiv link or a PDF path and wants it organized.
+argument-hint: "[article-url | article-filepath | setup]"
 ---
 
 # read-paper
@@ -15,7 +15,11 @@ paths; the scripts handle the rest on every OS.
 
 ## 0. Resolve the argument
 
-`$ARGUMENTS` is the paper reference: a URL (`https://arxiv.org/pdf/1706.03762`,
+If `$ARGUMENTS` is `setup` (optionally followed by `--dir <path>`), read
+`${CLAUDE_PLUGIN_ROOT}/skills/read-paper/setup.md`, follow it, and stop — there is no paper
+in that case.
+
+Otherwise `$ARGUMENTS` is the paper reference: a URL (`https://arxiv.org/pdf/1706.03762`,
 `https://arxiv.org/abs/1706.03762`, or any direct PDF link) or a local path.
 
 If it is empty, ask for it with `AskUserQuestion` (one question, options like
@@ -28,7 +32,7 @@ Do not fail silently.
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" options
 ```
 
-If `configured` is false, read `${CLAUDE_PLUGIN_ROOT}/skills/setup/SKILL.md` and follow it now,
+If `configured` is false, read `${CLAUDE_PLUGIN_ROOT}/skills/read-paper/setup.md` and follow it now,
 in this same turn. When it finishes, come back here and continue — do not ask the user to run
 anything again. Re-run `config.py options` afterwards.
 
@@ -237,7 +241,7 @@ Do not paste the note into the chat.
 ## Rules
 
 - The save-directory question (step 2) is always an `AskUserQuestion` call, never plain text,
-  never skipped. Domain and language are never asked here — that is `/read-paper:setup`.
+  never skipped. Domain and language are never asked here — that is `/read-paper setup`.
 - Nothing is installed, published, or written outside `<save-dir>`, `concepts_dir`, and the
   scratch directory without the user's configuration or explicit words.
 - No git operations. The save directory is just files; whether it is under version control is

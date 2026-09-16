@@ -1,6 +1,6 @@
 {
   "name": "read-paper",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "description": "Turn a paper (URL or PDF) into a structured Markdown note with cropped figures and cross-paper concept notes, saved where you choose. No Notion or Confluence account needed.",
   "author": {
     "name": "Taeyoon Park",

@@ -29,7 +29,7 @@ The skill ports these conventions from the author's private research workflow:
   `.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`.
 - Install: `claude plugin marketplace add <owner>/read-paper` then
   `claude plugin install read-paper`.
-- Contents: `skills/read-paper/SKILL.md`, `scripts/` (setup, PDF text extraction,
+- Contents: `skills/read-paper/SKILL.md` (+ `setup.md` it follows for `/read-paper setup`), `scripts/` (setup, PDF text extraction,
   figure crop, config read/write), `README.md`, `LICENSE`.
 - All documentation, skill text, and script comments are in **English**.
 - Runs on Linux, macOS and Windows: every script is Python (no shell scripts), paths go
@@ -61,9 +61,10 @@ Input handling:
 - Other URL: download the PDF; publication date from the PDF first page or user input.
 - Local path: use as is; publication date from the PDF first page (arXiv stamp) or user input.
 
-## Setup: `/read-paper:setup` (one-time, re-runnable)
+## Setup: `/read-paper setup` (one-time, re-runnable)
 
-A second skill collects every preference so `/read-paper` never asks about them. Questions,
+`/read-paper setup` (handled inside the single skill, so `/read` + Tab completes to one
+command) collects every preference so `/read-paper` never asks about them. Questions,
 each via `AskUserQuestion`, showing the current value when re-run:
 
 1. Research domain (free text) — drives the Personal Take section.
@@ -224,7 +225,7 @@ way. A publishing failure never undoes the local note.
 On a fresh machine and account (any of Linux, macOS, Windows):
 
 1. `claude plugin marketplace add parktune/read-paper` + install succeeds.
-2. `/read-paper:setup` alone stores every setting above; a Notion Papers database is created
+2. `/read-paper setup` alone stores every setting above; a Notion Papers database is created
    when the user asks for one.
 3. `/read-paper https://arxiv.org/pdf/<id>` asks one question (save directory) and produces
    `pdfs/`, `<slug>/<slug>.md`, `<slug>/figures/*.png`, created/updated concept notes in the
@@ -242,9 +243,9 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Concept notes | Included, under `<save-dir>/concepts/` |
 | Note language | Follows the conversation; docs in English |
 | Remembering paths | Config file + recent directory offered as an option; the question is asked on every run |
-| Personal Take domain | Asked in `/read-paper:setup`, stored in config (no first-run questions) |
+| Personal Take domain | Asked in `/read-paper setup`, stored in config (no first-run questions) |
 | PDF dependencies | poppler first (setup offers install), PyMuPDF fallback, else no figures |
-| Names | repo `read-paper`, skills `/read-paper` and `/read-paper:setup`, default dir `~/Documents/ReadPaper/` |
+| Names | repo `read-paper`, skills `/read-paper` and `/read-paper setup`, default dir `~/Documents/ReadPaper/` |
 | Missing config | `/read-paper` runs setup inline, then continues |
 | Config scope | one global file + per-directory overrides |
 | Extra setup items | concepts directory, figure count, note length |
