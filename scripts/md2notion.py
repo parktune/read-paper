@@ -61,7 +61,15 @@ def convert(body: str, uploads: dict):
                 i += 1
             out.append('<table header-row="true">')
             for r in rows:
-                out.append("<tr>" + "".join(f"<td>{INLINE_MATH.sub(chr(36) + '`' + chr(92) + '1`' + chr(36), c)}</td>" for c in r) + "</tr>")
+                cells = []
+                for c in r:
+                    # A cell starting with "+ " or "- " becomes a bullet in Notion; use a fullwidth sign instead.
+                    if c.startswith("+ "):
+                        c = "\uff0b " + c[2:]
+                    elif c.startswith("- "):
+                        c = "\u2212 " + c[2:]
+                    cells.append(f"<td>{INLINE_MATH.sub(chr(36) + '`' + chr(92) + '1`' + chr(36), c)}</td>")
+                out.append("<tr>" + "".join(cells) + "</tr>")
             out.append("</table>")
             continue
         m = IMAGE.match(line)
