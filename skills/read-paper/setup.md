@@ -35,14 +35,19 @@ override the global ones for that directory.
    `/read-paper` recommends on every run; the user can still pick another directory each time.
 3. **Note language** — "Same as the conversation (Recommended)", "English", Other.
 
-## 2. Concepts, figures, length (one call, 3 questions)
+## 2. Concepts and detail level (one call, 2 questions)
 
 1. **Concept-notes directory** — "Inside the save directory: `<save-dir>/concepts` (Recommended)"
    or Other. Concept notes accumulate across papers, so people who keep several paper
    directories often want one shared concepts directory.
-2. **Figures per note** — "4–5 (Recommended)", "2–3", "1", "None".
-3. **Note length** — "2,000–3,000 words (Recommended)", "Short: 1,000–1,500", "Long: 3,500+".
-   Word counts are approximate and language-agnostic; tables count.
+2. **Analysis detail level** — one dial that sets length, figures, section depth and how much
+   the concept notes are touched (the table is in SKILL.md):
+   - "standard (Recommended)" — 2,000–3,000 words, 2–3 figures, full section structure
+   - "brief" — about 1,000 words, 1 figure, compressed sections, concept notes only get a line
+   - "deep" — 3,500+ words, 4–5 figures, ablations and appendix, concept notes rewritten
+   - "Ask me on every run" — the level is chosen together with the save directory each time
+   Stored as `detail=brief|standard|deep|ask`. Whatever is stored, the user can override a
+   single run in plain words ("keep this one short").
 
 ## 3. Publishing targets (one multi-select question)
 
@@ -157,7 +162,7 @@ install command only when chosen, then re-check.
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" set \
   domain="<domain>" save_dir="<dir>" note_language="<lang>" concepts_dir="<dir>" \
-  figures="<4-5>" note_length="<2000-3000>" setup_done=true
+  detail="<standard|brief|deep|ask>" setup_done=true
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show
 ```
 

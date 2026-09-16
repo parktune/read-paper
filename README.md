@@ -10,8 +10,7 @@ will actually reopen. Linux, macOS and Windows.
 ```
 
 Give it an arXiv link, any PDF URL, or a local file. It asks where to save, reads the whole
-paper, crops the four or five figures that carry the argument, writes a structured Markdown
-note (2,000–3,000 words by default), updates
+paper, crops the figures that carry the argument, writes a structured Markdown note, updates
 the concept notes the paper touches, and — if you configured it — publishes the same note to
 Notion and/or Confluence.
 
@@ -79,7 +78,7 @@ command but never runs it without your say-so.
 | Default save directory | `~/Documents/ReadPaper` |
 | Concept-notes directory | `<save-dir>/concepts` |
 | Note language | same as the conversation |
-| Figures per note · note length | 4–5 · 2,000–3,000 words |
+| Analysis detail level | `standard` (2,000–3,000 words, 2–3 figures) · also `brief`, `deep`, or `ask` on every run |
 | Publish to Notion · Confluence | off |
 
 For **Notion** you paste a Papers database URL, or let setup create one (Name, Source,
@@ -88,6 +87,12 @@ folder URL; figures need an Atlassian API token (the MCP server cannot upload at
 which you can store in the config file or provide as `ATL_SITE` / `ATL_EMAIL` / `ATL_TOKEN`.
 Each target has a default — publish on every run, or only when you ask — and you can override
 it in plain words on any run ("also put this one in Confluence").
+
+**Detail level** is one dial: `brief` (~1,000 words, 1 figure, compressed sections, concept
+notes only get a line), `standard` (2,000–3,000 words, 2–3 figures, full structure), `deep`
+(3,500+ words, 4–5 figures, ablations and appendix, concept notes rewritten). Set it once, or
+choose `ask` to pick it together with the save directory on every run. "Keep this one short"
+overrides it for a single paper either way.
 
 Both need the matching MCP server connected in Claude Code (`claude mcp add --transport http
 -s user notion https://mcp.notion.com/mcp`, `claude mcp add --transport http -s user atlassian
@@ -101,7 +106,8 @@ current values. If you run `/read-paper` before setup, setup runs first and the 
 ## How a run goes
 
 1. **Where to save?** — one question: your default (recommended), recent directories, a
-   project-local directory if one fits, or a path you type.
+   project-local directory if one fits, or a path you type. With `detail: ask`, the detail
+   level is on the same screen.
 2. **Fetch** — downloads the PDF; for arXiv it reads title, authors, submission history
    (v1 date and latest version) and the comments line from the abs page. A local PDF with
    an arXiv stamp gets the same treatment.

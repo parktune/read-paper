@@ -1,6 +1,6 @@
 ---
 name: read-paper
-description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes, then publish to Notion / Confluence if configured. "/read-paper setup" configures domain, directories, language, figure count, note length and publishing targets. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", "configure read-paper", or gives an arXiv link or a PDF path and wants it organized.
+description: Read a research paper from a URL (arXiv or any PDF link) or a local PDF and write a structured Markdown note with cropped figures plus cross-paper concept notes, then publish to Notion / Confluence if configured. "/read-paper setup" configures domain, directories, language, analysis detail level and publishing targets. Use when the user says "read this paper", "summarize this paper", "take notes on", "/read-paper", "configure read-paper", or gives an arXiv link or a PDF path and wants it organized.
 argument-hint: "[article-url | article-filepath | setup]"
 ---
 
@@ -47,6 +47,11 @@ the ones that do not apply:
    `papers/`, `notes/`, or `docs/` directory, or the user mentioned one earlier).
 4. Nothing else. The built-in "Other" lets the user type a path.
 
+If `detail` in the settings is `ask`, add a **second question to the same call**: the analysis
+detail level — `standard (Recommended)` / `brief` / `deep` (see the table in step 6). If `detail`
+is a fixed level, do not ask; but if the user's message asks for a different depth in plain words
+("just a quick summary", "go deep on this one"), that wins for this run.
+
 Do not ask about domain or language here; those come from setup. Write all user-visible
 strings as literal UTF-8, never `\uXXXX` escapes.
 
@@ -56,8 +61,7 @@ Then read the effective settings for the chosen directory (per-directory overrid
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show --dir "<save-dir>"
 ```
 
-`domain`, `note_language`, `concepts_dir`, `figures`, `note_length`, and `publish` drive the
-rest of the run.
+`domain`, `note_language`, `concepts_dir`, `detail`, and `publish` drive the rest of the run.
 
 ## 3. Check the PDF backend
 
@@ -113,11 +117,22 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" tags --dir "<save-dir>"
 
 Read the concept notes this paper touches. Reuse existing tags before inventing new ones.
 
-## 6. Crop the figures
+## 6. Detail level, then crop the figures
 
-Target the configured `figures` count (default 4–5; `none` skips this step). The overview
-diagram and the main result table or plot come first; then the ablation or analysis figure
-that changes the conclusion.
+The detail level is one dial for the whole run:
+
+| | brief | standard | deep |
+|---|---|---|---|
+| Length | ~1,000 words | 2,000–3,000 words | 3,500+ words |
+| Figures | 1 (overview) | 2–3 | 4–5, including the decisive ablation |
+| Sections | Background and Limitations one paragraph each; Method without `##` | full structure | full structure + ablation table + appendix findings |
+| Concept notes | one line added to existing notes only, no new files | 2–4 created or updated | created/updated, and existing paragraphs rewritten where the paper changes them |
+
+Word counts include tables and are approximate; for languages without word spacing count
+space-separated units the same way.
+
+Figures: the overview diagram and the main result table or plot come first; then the ablation
+or analysis figure that changes the conclusion.
 
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/pdf_figures.py" scout "<pdf>" <first> <last> "<scratch>/scout"
@@ -155,16 +170,18 @@ Fixed conventions:
   how the paper bears on that concept.
 - **Language**: `note_language` (`conversation` = the language the user is writing in). Section
   headings follow it too, except code, math, and proper names.
-- **Depth**: the configured `note_length` (default 2,000–3,000 words, tables included; for
-  languages without word spacing count space-separated units the same way). Each of Summary,
-  Method, Results, Limitations, Personal Take is a real section, not a paragraph.
+- **Depth**: per the detail level table in step 6. At `standard` and `deep`, each of Summary,
+  Method, Results, Limitations, Personal Take is a real section, not a paragraph; at `brief`
+  the Personal Take still gets a full paragraph — it is the part worth keeping.
 - Plain declarative prose. No emoji beyond the two above, no marketing verbs.
 - Images as `![caption](figures/figN-name.png)` on their own line — the converters rely on it.
 
 ## 8. Update the concept notes
 
-For each concept the paper genuinely bears on (typically 2–4), create or update
-`<concepts_dir>/<concept-name>.md` from `${CLAUDE_PLUGIN_ROOT}/templates/concept.md`.
+For each concept the paper genuinely bears on (typically 2–4 at `standard`), create or update
+`<concepts_dir>/<concept-name>.md` from `${CLAUDE_PLUGIN_ROOT}/templates/concept.md`. At `brief`
+only add one line per existing note that the paper touches and create nothing; at `deep` also
+rewrite paragraphs the paper contradicts or sharpens.
 
 A concept note is **not** a paper summary. It holds the understanding that cuts across
 papers: what the concept is, what each paper adds (`[[<slug>]]` with the specific claim and a

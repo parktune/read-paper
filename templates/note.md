@@ -18,7 +18,7 @@ pdf: ../pdfs/{{SLUG}}.pdf
 
 # Background and Motivation
 
-{{The problem, what came before, and the gap this paper targets. Name the prior work it argues against.}}
+{{The problem, what came before, and the gap this paper targets. Name the prior work it argues against. One paragraph at brief.}}
 
 # Method
 
@@ -39,7 +39,7 @@ pdf: ../pdfs/{{SLUG}}.pdf
 
 # Limitations
 
-{{What the paper admits, and what it does not admit but the evidence shows. Compute, data, evaluation gaps.}}
+{{What the paper admits, and what it does not admit but the evidence shows. Compute, data, evaluation gaps. One paragraph at brief.}}
 
 # Personal Take
 

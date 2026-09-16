@@ -15,7 +15,7 @@ Commands (all print JSON):
   tags   --dir DIR               tags already used by notes under DIR, most frequent first
 
 Keys written by `/read-paper setup`:
-  domain, note_language, save_dir, concepts_dir, figures, note_length,
+  domain, note_language, save_dir, concepts_dir, detail (brief|standard|deep|ask),
   publish.notion.{enabled,default,url,data_source_id,properties},
   publish.confluence.{enabled,default,url,site,space_id,parent_id,email,token}
 """
@@ -34,8 +34,7 @@ DEFAULTS = {
     "save_dir": DEFAULT_DIR,
     "concepts_dir": None,          # None -> <save_dir>/concepts
     "note_language": "conversation",
-    "figures": "4-5",
-    "note_length": "2000-3000",
+    "detail": "standard",
     "publish": {
         "notion": {"enabled": False, "default": "ask"},
         "confluence": {"enabled": False, "default": "ask"},
@@ -80,11 +79,31 @@ def deep_merge(a: dict, b: dict) -> dict:
 
 
 def merged(dir_: str | None) -> dict:
-    cfg = deep_merge(DEFAULTS, load(global_path()))
+    cfg = deep_merge(DEFAULTS, migrate_detail(load(global_path())))
     if dir_:
-        cfg = deep_merge(cfg, load(Path(norm(dir_)) / LOCAL_NAME))
+        cfg = deep_merge(cfg, migrate_detail(load(Path(norm(dir_)) / LOCAL_NAME)))
     cfg["save_dir"] = norm(cfg["save_dir"])
     cfg["concepts_dir"] = norm(cfg["concepts_dir"]) if cfg.get("concepts_dir") else str(Path(cfg["save_dir"]) / "concepts")
+    return cfg
+
+
+DETAIL_LEVELS = ("brief", "standard", "deep", "ask")
+
+
+def migrate_detail(cfg: dict) -> dict:
+    """Old configs had separate figures / note_length keys; fold them into one detail level
+    (applied to a raw config file before defaults are merged in)."""
+    if cfg.get("detail") in DETAIL_LEVELS or not ("figures" in cfg or "note_length" in cfg):
+        cfg.pop("figures", None); cfg.pop("note_length", None)
+        return cfg
+    figs = str(cfg.pop("figures", "")).strip()
+    words = str(cfg.pop("note_length", "")).strip()
+    level = "standard"
+    if figs.startswith(("4", "5")) or words.startswith(("3500", "3000+")) or words.endswith("+"):
+        level = "deep"
+    if figs in ("1", "none") or (words and words.split("-")[0].isdigit() and int(words.split("-")[0]) <= 1000):
+        level = "brief"
+    cfg["detail"] = level
     return cfg
 
 
@@ -104,8 +123,7 @@ def cmd_options(_a) -> dict:
         "domain": cfg.get("domain"),
         "note_language": cfg["note_language"],
         "concepts_dir": cfg["concepts_dir"],
-        "figures": cfg["figures"],
-        "note_length": cfg["note_length"],
+        "detail": cfg["detail"],
         "publish": {k: {kk: vv for kk, vv in v.items() if kk != "token"} for k, v in cfg["publish"].items()},
         "global_config": str(global_path()),
     }
@@ -138,6 +156,8 @@ def cmd_set(a) -> dict:
             if not isinstance(node, dict):
                 sys.exit(f"error: {key}: {p} is not an object")
         node[parts[-1]] = parse_value(raw)
+    if "detail" in data:
+        data.pop("figures", None); data.pop("note_length", None)
     save(path, data)
     return {"written": str(path), "keys": [p.split("=", 1)[0] for p in a.pairs]}
 

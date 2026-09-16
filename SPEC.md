@@ -72,7 +72,9 @@ each via `AskUserQuestion`, showing the current value when re-run:
 3. Note language — same as the conversation (default) / English / other.
 4. Concept-notes directory — `<save-dir>/concepts` by default; may point elsewhere so several
    paper directories share one concepts directory.
-5. Figures per note (4–5 default) and note length (2,000–3,000 words default). On re-run every
+5. Analysis detail level — `brief | standard | deep | ask` (one dial for length, figures, section
+   depth and concept-note update width; `ask` = chosen with the save directory on every run).
+   Replaced the separate figure-count and note-length settings on 2026-09-16. On re-run every
    step, including publishing destinations and credentials, shows "Keep: <current>" first.
 6. Publishing targets, **multi-select checkboxes**: `[ ] Notion  [ ] Confluence`.
    - Notion: paste a Papers database URL, or let setup create one (`Name`, `Source`,
@@ -106,7 +108,7 @@ Domain and language are never asked in a run.
 - Global: `~/.config/read-paper/config.json` (Linux/macOS, honours `XDG_CONFIG_HOME`) or
   `%APPDATA%\read-paper\config.json` (Windows). Mode 600 where supported (may hold a token).
 - Per-directory overrides: `<save-dir>/.read-paper.json`.
-- Keys: `domain`, `save_dir`, `concepts_dir`, `note_language`, `figures`, `note_length`,
+- Keys: `domain`, `save_dir`, `concepts_dir`, `note_language`, `detail`,
   `setup_done`, `recent_dirs`, `last_dir`,
   `publish.notion.{enabled,default,url,data_source_id,properties}`,
   `publish.confluence.{enabled,default,url,site,space_id,parent_id,email,token,figures}`.
@@ -249,5 +251,6 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Missing config | `/read-paper` runs setup inline, then continues |
 | Config scope | one global file + per-directory overrides |
 | Extra setup items | concepts directory, figure count, note length |
-| Defaults (2026-09-16, after first real use) | 4–5 figures, 2,000–3,000 words; setup re-run confirms destinations with Keep/Change |
+| Defaults (2026-09-16, after first real use) | setup re-run confirms destinations with Keep/Change |
+| Detail level (2026-09-16) | one `detail` setting replaces figures + note_length; 3 levels brief/standard/deep + `ask`; scope = length, figures, section depth, concept-note width; plugin default standard |
 | Platforms | Linux, macOS, Windows; Python-only scripts, no git |
