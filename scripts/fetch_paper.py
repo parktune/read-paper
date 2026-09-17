@@ -6,7 +6,7 @@
   scripts/fetch_paper.py <ref> --dir DIR --slug my-slug    override the folder name
   scripts/fetch_paper.py <ref> --dir DIR --offline         never touch the network
 
-The PDF lands in <dir>/pdfs/<slug>.pdf. Output is one JSON object:
+The PDF lands in <dir>/pdfs/<slug>.pdf; the note goes to <dir>/papers/<slug>/ (note_dir). Output is one JSON object:
   slug, pdf, title, authors, published (v1 date, ISO), latest_version, latest_date,
   arxiv_id, url_abs, url_pdf, comments, primary_category, source_kind, warnings
 
@@ -184,7 +184,7 @@ def main() -> None:
         warn(warnings, "title/authors/published date were not fetched; confirm them from the PDF's first page")
 
     result.update({"slug": slug, "pdf": str(pdf_path), "source_kind": source_kind, "warnings": warnings,
-                   "note_dir": str(save_dir / slug), "read": datetime.now().date().isoformat()})
+                   "note_dir": str(save_dir / "papers" / slug), "read": datetime.now().date().isoformat()})
     json.dump(result, sys.stdout, indent=2, ensure_ascii=False)
     print()
 

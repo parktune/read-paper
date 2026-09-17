@@ -87,7 +87,9 @@ python3 "${CLAUDE_PLUGIN_ROOT}/scripts/setup.py" --json
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/fetch_paper.py" "<ref>" --dir "<save-dir>"
 ```
 
-The PDF is saved to `<save-dir>/pdfs/<slug>.pdf`. The JSON gives `title`, `authors`,
+The PDF is saved to `<save-dir>/pdfs/<slug>.pdf` and the note folder is
+`<save-dir>/papers/<slug>/` (`note_dir`). Papers, concept notes and PDFs live in three sibling
+folders so paper folders never mix with `concepts/`. The JSON gives `title`, `authors`,
 `published` (arXiv **v1** date), `latest_version`, `latest_date`, `comments` (often the venue),
 `slug`, `note_dir`, `read` (today), and `warnings`.
 

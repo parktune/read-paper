@@ -179,8 +179,8 @@ TAGS = re.compile(r"^tags:\s*\[(.*?)\]", re.M)
 def cmd_tags(a) -> dict:
     d = Path(norm(a.dir))
     counter: Counter = Counter()
-    for md in d.glob("*/*.md"):
-        if md.parent.name in ("concepts", "pdfs"):
+    for md in list(d.glob("papers/*/*.md")) + list(d.glob("*/*.md")):
+        if md.parent.name in ("concepts", "pdfs", "papers") or md.parent.parent.name == "concepts":
             continue
         m = FRONT.match(md.read_text(encoding="utf-8", errors="replace"))
         t = TAGS.search(m.group(1)) if m else None

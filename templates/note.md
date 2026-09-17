@@ -5,7 +5,7 @@ published: {{PUBLISHED}}
 read: {{READ}}
 tags: [{{TAGS}}]
 source: {{URL_ABS}}
-pdf: ../pdfs/{{SLUG}}.pdf
+pdf: ../../pdfs/{{SLUG}}.pdf
 ---
 
 📄 Published: **{{PUBLISHED}}** ({{VERSION_INFO}}) · Source: [abs]({{URL_ABS}}) · [pdf]({{URL_PDF}}) · {{AFFILIATIONS}} · Read: {{READ}}

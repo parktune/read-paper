@@ -126,18 +126,22 @@ Domain and language are never asked in a run.
 ```
 <save-dir>/
   .read-paper.json
-  pdfs/<slug>.pdf
-  <slug>/
-    <slug>.md
-    figures/fig1-<short-name>.png
-    figures/fig2-<short-name>.png
+  papers/
+    <slug>/
+      <slug>.md
+      figures/fig1-<short-name>.png
+      figures/fig2-<short-name>.png
   concepts/                 (or the configured concepts_dir)
     <concept-name>.md
+  pdfs/<slug>.pdf
 ```
+
+Papers, concepts and PDFs are three sibling folders (since 2026-09-17); paper folders never sit
+next to `concepts/` at the top level.
 
 `<slug>` is the kebab-case short name of the paper (e.g. `attention-is-all-you-need`, `resnet`).
 
-## Note format (`<slug>/<slug>.md`)
+## Note format (`papers/<slug>/<slug>.md`)
 
 Front matter:
 
@@ -236,7 +240,7 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 2. `/read-paper setup` alone stores every setting above; a Notion Papers database is created
    when the user asks for one.
 3. `/read-paper https://arxiv.org/pdf/<id>` asks one question (save directory) and produces
-   `pdfs/`, `<slug>/<slug>.md`, `<slug>/figures/*.png`, created/updated concept notes in the
+   `pdfs/`, `papers/<slug>/<slug>.md`, `papers/<slug>/figures/*.png`, created/updated concept notes in the
    configured concepts directory, and the configured publications.
 4. `/read-paper` without prior setup runs setup inline and then processes the paper.
 5. Without poppler and PyMuPDF the note is still produced, minus figures, with a clear message;
@@ -258,6 +262,7 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Config scope | one global file + per-directory overrides |
 | Extra setup items | concepts directory, figure count, note length |
 | Defaults (2026-09-16, after first real use) | setup re-run confirms destinations with Keep/Change |
+| Layout (2026-09-17) | `papers/<slug>/` + `concepts/` + `pdfs/` as siblings; paper folders no longer mix with concepts |
 | Save-dir question (2026-09-16) | always ≥2 real options: default + "new subfolder under default"; existing note → publish-as-is / rewrite / skip |
 | Detail level (2026-09-16) | one `detail` setting replaces figures + note_length; 3 levels brief/standard/deep + `ask`; scope = length, figures, section depth, concept-note width; plugin default standard |
 | Platforms | Linux, macOS, Windows; Python-only scripts, no git |

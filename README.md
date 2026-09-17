@@ -21,16 +21,17 @@ The notes are plain files in a folder you choose. No git, no database, no accoun
 ```
 ~/Documents/ReadPaper/                  (or wherever you chose)
 ├── .read-paper.json                    per-directory overrides (optional)
-├── pdfs/
-│   └── attention-is-all-you-need.pdf
-├── attention-is-all-you-need/
-│   ├── attention-is-all-you-need.md    the note
-│   └── figures/
-│       ├── fig1-architecture.png
-│       └── fig2-bleu-table.png
-└── concepts/                           cross-paper notes, [[wikilinked]]
-    ├── self-attention.md               (can live elsewhere: see setup)
-    └── positional-encoding.md
+├── papers/
+│   └── attention-is-all-you-need/
+│       ├── attention-is-all-you-need.md    the note
+│       └── figures/
+│           ├── fig1-architecture.png
+│           └── fig2-bleu-table.png
+├── concepts/                           cross-paper notes, [[wikilinked]]
+│   ├── self-attention.md               (can live elsewhere: see setup)
+│   └── positional-encoding.md
+└── pdfs/
+    └── attention-is-all-you-need.pdf
 ```
 
 The note opens with the **publication date before the read date** — how recent the work
@@ -106,8 +107,8 @@ current values. If you run `/read-paper` before setup, setup runs first and the 
 ## How a run goes
 
 1. **Where to save?** — one question: your default (recommended), recent directories, a
-   project-local directory if one fits, or a path you type. With `detail: ask`, the detail
-   level is on the same screen.
+   project-local directory if one fits, a new subfolder under the default, or a path you type.
+   With `detail: ask`, the detail level is on the same screen.
 2. **Fetch** — downloads the PDF; for arXiv it reads title, authors, submission history
    (v1 date and latest version) and the comments line from the abs page. A local PDF with
    an arXiv stamp gets the same treatment.
