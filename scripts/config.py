@@ -15,7 +15,7 @@ Commands (all print JSON):
   tags   --dir DIR               tags already used by notes under DIR, most frequent first
 
 Keys written by `/read-paper setup`:
-  domain, note_language, save_dir, concepts_dir, detail (brief|standard|deep|ask),
+  domain, note_language, save_dir, concepts_dir, detail (brief|standard|deep|ask), ask_dir,
   publish.notion.{enabled,default,url,data_source_id,properties},
   publish.confluence.{enabled,default,url,site,space_id,parent_id,email,token}
 """
@@ -35,6 +35,7 @@ DEFAULTS = {
     "concepts_dir": None,          # None -> <save_dir>/concepts
     "note_language": "conversation",
     "detail": "standard",
+    "ask_dir": False,
     "publish": {
         "notion": {"enabled": False, "default": "ask"},
         "confluence": {"enabled": False, "default": "ask"},
@@ -124,6 +125,7 @@ def cmd_options(_a) -> dict:
         "note_language": cfg["note_language"],
         "concepts_dir": cfg["concepts_dir"],
         "detail": cfg["detail"],
+        "ask_dir": cfg["ask_dir"],
         "publish": {k: {kk: vv for kk, vv in v.items() if kk != "token"} for k, v in cfg["publish"].items()},
         "global_config": str(global_path()),
     }

@@ -31,8 +31,11 @@ override the global ones for that directory.
    as options, e.g. "computational biology", "recommender systems", "speech recognition". The
    Personal Take section of every note is written from this viewpoint.
 2. **Default save directory** — options: `~/Documents/ReadPaper` (Recommended), the current
-   working directory if it looks like a notes/papers folder, Other. This is the directory
-   `/read-paper` recommends on every run; the user can still pick another directory each time.
+   working directory if it looks like a notes/papers folder, Other. `/read-paper` saves here
+   without asking; a run can still name another path in plain words or with `--dir`.
+   Then ask **"Ask me where to save on every run?"** — "No, always use the default
+   (Recommended)" / "Yes" (for people who keep several paper directories). Stored as
+   `ask_dir=false|true`.
 3. **Note language** — "Same as the conversation (Recommended)", "English", Other.
 
 ## 2. Concepts and detail level (one call, 2 questions)
@@ -162,7 +165,7 @@ install command only when chosen, then re-check.
 ```bash
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" set \
   domain="<domain>" save_dir="<dir>" note_language="<lang>" concepts_dir="<dir>" \
-  detail="<standard|brief|deep|ask>" setup_done=true
+  detail="<standard|brief|deep|ask>" ask_dir=false setup_done=true
 python3 "${CLAUDE_PLUGIN_ROOT}/scripts/config.py" show
 ```
 

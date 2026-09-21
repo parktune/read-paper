@@ -90,10 +90,11 @@ each via `AskUserQuestion`, showing the current value when re-run:
 Writes `setup_done=true`. If `/read-paper` finds no configuration it runs setup inline and
 then continues with the paper in the same turn.
 
-## Step 1 of a run — ask where to save (mandatory tool call)
+## Step 1 of a run — the save directory (no question by default; revised 2026-09-21)
 
-The first action after loading settings is an `AskUserQuestion` call asking for the save
-directory — on **every** run, even with a full configuration. Options, in this order:
+The run saves to the configured default without asking. The user can name another path in
+the message or with `--dir`. Only with `ask_dir=true` (a setup choice for people with several
+paper directories) is the directory asked, as an `AskUserQuestion` with these options:
 
 1. The configured default directory — **(Recommended)**, always present.
 2. Recently used directories from the config file — only if they exist and differ from 1.
@@ -254,7 +255,7 @@ On a fresh machine and account (any of Linux, macOS, Windows):
 | Notion / Confluence | Published by the plugin via the user's MCP servers; targets chosen in setup with multi-select; per-target default always/ask (revised 2026-09-16) |
 | Concept notes | Included, under `<save-dir>/concepts/` |
 | Note language | Follows the conversation; docs in English |
-| Remembering paths | Config file + recent directory offered as an option; the question is asked on every run |
+| Remembering paths | Config file; the directory is not asked unless `ask_dir=true` (revised 2026-09-21 — asking every run was too much friction) |
 | Personal Take domain | Asked in `/read-paper setup`, stored in config (no first-run questions) |
 | PDF dependencies | poppler first (setup offers install), PyMuPDF fallback, else no figures |
 | Names | repo `read-paper`, skills `/read-paper` and `/read-paper setup`, default dir `~/Documents/ReadPaper/` |

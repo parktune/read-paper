@@ -76,7 +76,7 @@ command but never runs it without your say-so.
 | Setting | Default |
 |---|---|
 | Research domain (drives the Personal Take section) | — |
-| Default save directory | `~/Documents/ReadPaper` |
+| Default save directory | `~/Documents/ReadPaper` (used without asking; `ask_dir` to be asked each run) |
 | Concept-notes directory | `<save-dir>/concepts` |
 | Note language | same as the conversation |
 | Analysis detail level | `standard` (2,000–3,000 words, 2–3 figures) · also `brief`, `deep`, or `ask` on every run |
@@ -106,9 +106,9 @@ current values. If you run `/read-paper` before setup, setup runs first and the 
 
 ## How a run goes
 
-1. **Where to save?** — one question: your default (recommended), recent directories, a
-   project-local directory if one fits, a new subfolder under the default, or a path you type.
-   With `detail: ask`, the detail level is on the same screen.
+1. **Save directory** — your default, with no question asked. Name another path in the
+   message ("save this one under ~/notes") when you want it elsewhere, or turn on
+   "ask on every run" in setup if you keep several paper directories.
 2. **Fetch** — downloads the PDF; for arXiv it reads title, authors, submission history
    (v1 date and latest version) and the comments line from the abs page. A local PDF with
    an arXiv stamp gets the same treatment.

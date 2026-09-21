@@ -36,30 +36,26 @@ If `configured` is false, read `${CLAUDE_PLUGIN_ROOT}/skills/read-paper/setup.md
 in this same turn. When it finishes, come back here and continue — do not ask the user to run
 anything again. Re-run `config.py options` afterwards.
 
-## 2. Ask where to save — always, and always as a tool call
+## 2. Pick the save directory — no question by default
 
-Call `AskUserQuestion` on every run, even with a full config. Options, in this order, dropping
-the ones that do not apply:
+Use `recommended` from the script (the configured default) and say nothing about it. Do not
+ask where to save. Only these change the directory for a run:
 
-1. `recommended` from the script (the configured default) — label it `(Recommended)`, first.
-2. Each entry of `recent` — "Last used" for the first one.
-3. A directory that fits the current project, if there is one (e.g. the working repo has a
-   `papers/`, `notes/`, or `docs/` directory, or the user mentioned one earlier).
-4. **A new subfolder under the default** — always present, so the question never has fewer
-   than two options (the tool rejects single-option questions). Label it
-   "New subfolder under <default>"; when chosen, take the folder name from the user's Other
-   text (or ask once more) and use `<default>/<folder>` as this run's save directory. Concept
-   notes still go to the configured `concepts_dir`, not into the subfolder.
+- the user's message names a path or folder ("save it under ~/notes", "put this one in the
+  robotics folder" → `<default>/robotics`), or passes `--dir <path>`;
+- the config has `ask_dir=true` (set in `/read-paper setup` by people who keep several paper
+  directories) — then, and only then, ask with `AskUserQuestion`: `recommended` (Recommended),
+  each `recent` entry, a project-local directory if one fits, and "New subfolder under
+  <default>" (so there are always at least two real options; the built-in Other takes a typed
+  path).
 
-The built-in "Other" lets the user type any path. Never add an option that only duplicates it.
+If `detail` in the settings is `ask`, ask the detail level — `standard (Recommended)` / `brief` /
+`deep` (table in step 6) — in the same call as the directory question when there is one,
+otherwise on its own. If `detail` is a fixed level, do not ask; the user's words ("just a quick
+summary", "go deep on this one") still win for this run.
 
-If `detail` in the settings is `ask`, add a **second question to the same call**: the analysis
-detail level — `standard (Recommended)` / `brief` / `deep` (see the table in step 6). If `detail`
-is a fixed level, do not ask; but if the user's message asks for a different depth in plain words
-("just a quick summary", "go deep on this one"), that wins for this run.
-
-Do not ask about domain or language here; those come from setup. Write all user-visible
-strings as literal UTF-8, never `\uXXXX` escapes.
+Never ask about domain or language here; those come from setup. Write all user-visible strings
+as literal UTF-8, never `\uXXXX` escapes.
 
 Then read the effective settings for the chosen directory (per-directory overrides apply):
 
@@ -269,9 +265,9 @@ Do not paste the note into the chat.
 
 ## Rules
 
-- The save-directory question (step 2) is always an `AskUserQuestion` call, never plain text,
-  never skipped, and always has at least two real options (the "new subfolder" option
-  guarantees it). Domain and language are never asked here — that is `/read-paper setup`.
+- The save directory is the configured default unless the user names another or `ask_dir` is
+  on; when a directory question is asked it is an `AskUserQuestion` call with at least two real
+  options. Domain and language are never asked in a run — that is `/read-paper setup`.
 - Nothing is installed, published, or written outside `<save-dir>`, `concepts_dir`, and the
   scratch directory without the user's configuration or explicit words.
 - No git operations. The save directory is just files; whether it is under version control is
